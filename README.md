@@ -63,7 +63,12 @@ the check does not add another margin. Only the component's own PCB layer is
 checked, independently of through-hole copper on other layers.
 
 `excluded_pcb_component_ids`, `do_not_place`, and zero-size component owners are
-skipped. The published schema excludes PCB component IDs, not source IDs; callers
+skipped. A keepout's optional `pcb_component_id` also exempts its own component's
+footprint, since that keepout can contribute to the owner's bounds. This ownership
+does not exempt the owner's copper or other components; copper exclusions still
+require explicit `excluded_pcb_component_ids`. No owner is inferred when the field
+is absent, and older Circuit JSON types are supported by checking the raw field.
+The published schema excludes PCB component IDs, not source IDs; callers
 must resolve mounting source entities to their PCB component IDs. Board ownership
 uses `subcircuit_id`, the PCB group/source component when needed, and
 `source_group.parent_subcircuit_id` to find the containing board. A board's
