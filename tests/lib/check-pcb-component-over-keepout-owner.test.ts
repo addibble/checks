@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test"
+import { pcb_keepout } from "circuit-json"
 import type { AnyCircuitElement, PCBKeepout } from "circuit-json"
 import {
   checkPcbComponentOverKeepout,
@@ -40,10 +41,10 @@ test("exempts only an explicit keepout owner's footprint, never its copper", asy
     expect(
       checkPcbComponentOverKeepout([...componentsAndPad, unowned]),
     ).toHaveLength(2)
-    const owned = {
+    const owned = pcb_keepout.parse({
       ...unowned,
       pcb_component_id: component.pcb_component_id,
-    }
+    })
     const circuitJson = [...componentsAndPad, owned]
     const footprintErrors = checkPcbComponentOverKeepout(circuitJson)
     expect(

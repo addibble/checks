@@ -67,7 +67,7 @@ skipped. A keepout's optional `pcb_component_id` also exempts its own component'
 footprint, since that keepout can contribute to the owner's bounds. This ownership
 does not exempt the owner's copper or other components; copper exclusions still
 require explicit `excluded_pcb_component_ids`. No owner is inferred when the field
-is absent, and older Circuit JSON types are supported by checking the raw field.
+is absent.
 The published schema excludes PCB component IDs, not source IDs; callers
 must resolve mounting source entities to their PCB component IDs. Board ownership
 uses `subcircuit_id`, the PCB group/source component when needed, and

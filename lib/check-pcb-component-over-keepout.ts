@@ -114,11 +114,7 @@ export function checkPcbComponentOverKeepout(
 
     for (const keepout of keepouts) {
       // Ownership exempts the inflated owner footprint, not the owner's copper.
-      if (
-        "pcb_component_id" in keepout &&
-        typeof keepout.pcb_component_id === "string" &&
-        keepout.pcb_component_id === component.pcb_component_id
-      ) {
+      if (keepout.pcb_component_id === component.pcb_component_id) {
         continue
       }
       if (
