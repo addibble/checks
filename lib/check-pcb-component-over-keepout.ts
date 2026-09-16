@@ -25,15 +25,33 @@ export function checkPcbComponentOverKeepout(
   )
   if (keepouts.length === 0 || components.length === 0) return []
 
-  const boards = new Map(
-    circuitJson
-      .filter((element) => element.type === "pcb_board")
-      .filter((board) => board.subcircuit_id)
-      .map((board) => [board.subcircuit_id, board.pcb_board_id]),
-  )
-  const parents = new Map(
+  const sourceGroups = new Map(
     circuitJson
       .filter((element) => element.type === "source_group")
+      .map((group) => [group.source_group_id, group]),
+  )
+  const sourceBoards = new Map(
+    circuitJson
+      .filter((element) => element.type === "source_board")
+      .map((board) => [board.source_board_id, board]),
+  )
+  const boards = new Map<string, string>()
+  for (const board of circuitJson) {
+    if (board.type !== "pcb_board") continue
+    // Core emits this relationship, but older Circuit JSON types omit it.
+    const sourceBoard =
+      "source_board_id" in board && typeof board.source_board_id === "string"
+        ? sourceBoards.get(board.source_board_id)
+        : undefined
+    const subcircuitId =
+      board.subcircuit_id ??
+      (sourceBoard
+        ? sourceGroups.get(sourceBoard.source_group_id)?.subcircuit_id
+        : undefined)
+    if (subcircuitId) boards.set(subcircuitId, board.pcb_board_id)
+  }
+  const parents = new Map(
+    [...sourceGroups.values()]
       .filter((group) => group.subcircuit_id && group.parent_subcircuit_id)
       .map((group) => [group.subcircuit_id, group.parent_subcircuit_id]),
   )

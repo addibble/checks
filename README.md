@@ -66,9 +66,12 @@ checked, independently of through-hole copper on other layers.
 skipped. The published schema excludes PCB component IDs, not source IDs; callers
 must resolve mounting source entities to their PCB component IDs. Board ownership
 uses `subcircuit_id`, the PCB group/source component when needed, and
-`source_group.parent_subcircuit_id` to find the containing board. Known different
-boards do not collide; unscoped input is treated as a common coordinate plane,
-as in other placement checks.
+`source_group.parent_subcircuit_id` to find the containing board. A board's
+subcircuit is resolved from its `source_board_id` through
+`source_board.source_group_id` to `source_group.subcircuit_id`, or from an
+explicit `pcb_board.subcircuit_id`. Known different boards do not collide;
+unscoped input is treated as a common coordinate plane, as in other placement
+checks.
 
 Errors have stable IDs
 `component_over_keepout_<pcb_component_id>_<pcb_keepout_id>`, distinct from copper
