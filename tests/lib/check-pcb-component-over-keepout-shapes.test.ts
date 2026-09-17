@@ -14,23 +14,25 @@ test("uses circle and polygon intersection rather than center or bounding-box ov
     layers: ["bottom"],
   } satisfies PCBKeepout
   expect(pcb_keepout.parse(rect)).toEqual(rect)
-  expect(checkPcbComponentOverKeepout([component, rect])).toHaveLength(1)
+  expect(checkPcbComponentOverKeepout([component], [rect])).toHaveLength(1)
   expect(
-    checkPcbComponentOverKeepout([
-      component,
-      { ...rect, center: { x: 4.1, y: 0 } },
-    ]),
+    checkPcbComponentOverKeepout(
+      [component],
+      [{ ...rect, center: { x: 4.1, y: 0 } }],
+    ),
   ).toEqual([])
   expect(
-    checkPcbComponentOverKeepout([
-      component,
-      {
-        ...keepout,
-        shape: "circle",
-        center: { x: 3.6, y: 1.6 },
-        radius: 0.7,
-      },
-    ]),
+    checkPcbComponentOverKeepout(
+      [component],
+      [
+        {
+          ...keepout,
+          shape: "circle",
+          center: { x: 3.6, y: 1.6 },
+          radius: 0.7,
+        },
+      ],
+    ),
   ).toEqual([])
 
   const outline = pcb_keepout.parse({
@@ -46,15 +48,15 @@ test("uses circle and polygon intersection rather than center or bounding-box ov
     layers: ["bottom"],
   })
   expect(
-    checkPcbComponentOverKeepout([
-      { ...component, center: { x: 4, y: 4 }, width: 1, height: 1 },
-      outline,
-    ]),
+    checkPcbComponentOverKeepout(
+      [{ ...component, center: { x: 4, y: 4 }, width: 1, height: 1 }],
+      [outline],
+    ),
   ).toEqual([])
   expect(
-    checkPcbComponentOverKeepout([
-      { ...component, center: { x: 1, y: 1 }, width: 1, height: 1 },
-      outline,
-    ]),
+    checkPcbComponentOverKeepout(
+      [{ ...component, center: { x: 1, y: 1 }, width: 1, height: 1 }],
+      [outline],
+    ),
   ).toHaveLength(1)
 })

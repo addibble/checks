@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import type { AnyCircuitElement } from "circuit-json"
+import type { AnyCircuitElement, PCBKeepout } from "circuit-json"
 import {
   checkPcbComponentOverKeepout,
   checkPcbCopperOverKeepout,
@@ -8,6 +8,10 @@ import {
 import { component, keepout, source } from "../fixtures/component-keepout"
 
 test("keeps stable component/keepout IDs distinct from copper and other keepouts", async () => {
+  const keepouts: PCBKeepout[] = [
+    keepout,
+    { ...keepout, pcb_keepout_id: "pcb_keepout_spacer" },
+  ]
   const circuitJson: AnyCircuitElement[] = [
     source,
     component,
@@ -21,21 +25,23 @@ test("keeps stable component/keepout IDs distinct from copper and other keepouts
       radius: 0.2,
       layer: "bottom",
     },
-    keepout,
-    { ...keepout, pcb_keepout_id: "pcb_keepout_spacer" },
+    ...keepouts,
   ]
-  const errors = checkPcbComponentOverKeepout(circuitJson)
+  const errors = checkPcbComponentOverKeepout(circuitJson, keepouts)
   expect(errors.map((error) => error.pcb_placement_error_id)).toEqual([
     "component_over_keepout_pcb_component_u1_pcb_keepout_boss",
     "component_over_keepout_pcb_component_u1_pcb_keepout_spacer",
   ])
   expect(
-    checkPcbComponentOverKeepout([...circuitJson, keepout, ...errors]),
+    checkPcbComponentOverKeepout(
+      [...circuitJson, keepout, ...errors],
+      [...keepouts, keepout],
+    ),
   ).toEqual(errors)
   const copperErrors = checkPcbCopperOverKeepout(circuitJson)
   expect(copperErrors).toHaveLength(2)
   expect(await runAllPlacementChecks(circuitJson)).toEqual(
-    expect.arrayContaining([...errors, ...copperErrors]),
+    expect.arrayContaining(copperErrors),
   )
   expect(
     new Set(

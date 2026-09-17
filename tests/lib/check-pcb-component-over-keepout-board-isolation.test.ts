@@ -30,18 +30,16 @@ test("isolates known boards while checking sibling subcircuits and inherited own
     ),
   ]
   expect(
-    checkPcbComponentOverKeepout([
-      ...hierarchy,
-      { ...component, subcircuit_id: "sub_component" },
-      { ...keepout, subcircuit_id: "sub_b" },
-    ]),
+    checkPcbComponentOverKeepout(
+      [...hierarchy, { ...component, subcircuit_id: "sub_component" }],
+      [{ ...keepout, subcircuit_id: "sub_b" }],
+    ),
   ).toEqual([])
   expect(
-    checkPcbComponentOverKeepout([
-      ...hierarchy,
-      { ...component, subcircuit_id: "sub_component" },
-      { ...keepout, subcircuit_id: "sub_keepout" },
-    ]),
+    checkPcbComponentOverKeepout(
+      [...hierarchy, { ...component, subcircuit_id: "sub_component" }],
+      [{ ...keepout, subcircuit_id: "sub_keepout" }],
+    ),
   ).toHaveLength(1)
 
   const group = pcb_group.parse({
@@ -53,20 +51,15 @@ test("isolates known boards while checking sibling subcircuits and inherited own
     pcb_component_ids: [],
   })
   expect(
-    checkPcbComponentOverKeepout([
-      ...hierarchy,
-      group,
-      { ...source, subcircuit_id: "sub_b" },
-      component,
-      { ...keepout, pcb_group_id: group.pcb_group_id },
-    ]),
+    checkPcbComponentOverKeepout(
+      [...hierarchy, group, { ...source, subcircuit_id: "sub_b" }, component],
+      [{ ...keepout, pcb_group_id: group.pcb_group_id }],
+    ),
   ).toEqual([])
   expect(
-    checkPcbComponentOverKeepout([
-      ...hierarchy,
-      group,
-      { ...component, pcb_group_id: group.pcb_group_id },
-      { ...keepout, subcircuit_id: "sub_b" },
-    ]),
+    checkPcbComponentOverKeepout(
+      [...hierarchy, group, { ...component, pcb_group_id: group.pcb_group_id }],
+      [{ ...keepout, subcircuit_id: "sub_b" }],
+    ),
   ).toEqual([])
 })

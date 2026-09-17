@@ -14,7 +14,6 @@ import { checkNoPowerPinDefined } from "./check-no-power-pin-defined"
 import { checkPadPadClearance } from "./check-pad-pad-clearance"
 import { checkPadTraceClearance } from "./check-pad-trace-clearance"
 import { checkPcbComponentOverCutout } from "./check-pcb-component-over-cutout"
-import { checkPcbComponentOverKeepout } from "./check-pcb-component-over-keepout"
 import { checkPcbComponentsMissingCourtyard } from "./check-pcb-components-missing-courtyard"
 import { checkPcbComponentsOutOfBoard } from "./check-pcb-components-out-of-board/checkPcbComponentsOutOfBoard"
 import { checkPcbComponentOverlap } from "./check-pcb-components-overlap/checkPcbComponentOverlap"
@@ -44,7 +43,6 @@ export async function runAllPlacementChecks(
     ...checkViasInPads(circuitJson),
     ...checkPcbComponentsOutOfBoard(circuitJson),
     ...checkPcbComponentOverCutout(circuitJson),
-    ...checkPcbComponentOverKeepout(circuitJson),
     ...checkPcbCopperOverKeepout(circuitJson),
     ...checkPcbComponentOverlap(circuitJson),
     ...checkPcbComponentsMissingCourtyard(circuitJson),

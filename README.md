@@ -23,7 +23,7 @@ and output an array of arrays for any issues found.
 | [`checkPcbComponentOverlap`](./lib/check-pcb-components-overlap/checkPcbComponentOverlap.ts) | Returns `pcb_footprint_overlap_error` when footprint elements from different components overlap in disallowed ways. |
 | [`checkPcbComponentsOutOfBoard`](./lib/check-pcb-components-out-of-board/checkPcbComponentsOutOfBoard.ts) | Returns `pcb_placement_error` when PCB components do not fit inside the board area. |
 | [`checkPcbCopperOverKeepout`](./lib/check-pcb-copper-over-keepout.ts) | Returns one `pcb_placement_error` per non-excluded component or via whose copper overlaps a keepout on a shared layer. |
-| [`checkPcbComponentOverKeepout`](./lib/check-pcb-component-over-keepout.ts) | Returns one `pcb_placement_error` per component/keepout pair whose conservative component footprint intersects a keepout on the component's PCB layer. |
+| [`checkPcbComponentOverKeepout`](./lib/check-pcb-component-over-keepout.ts) | Opt-in check returning one `pcb_placement_error` per component/keepout pair whose conservative component footprint intersects an explicitly selected keepout on the component's PCB layer. |
 | [`checkPcbTracesOutOfBoard`](./lib/check-trace-out-of-board/checkTraceOutOfBoard.ts) | Returns `pcb_trace_error` when any trace segment or via extends beyond the board boundary. |
 | [`checkPadTraceClearance`](./lib/check-pad-trace-clearance.ts) | Returns `pcb_pad_trace_clearance_error` when a pad and unrelated trace have a positive gap below the minimum clearance. Physical overlaps are reported by `checkEachPcbTraceNonOverlapping`. |
 | [`checkViaTraceClearance`](./lib/check-via-trace-clearance.ts) | Returns `pcb_via_trace_clearance_error` when a via and unrelated trace have a positive gap below the minimum clearance. Physical overlaps are reported by `checkEachPcbTraceNonOverlapping`. |
@@ -39,7 +39,7 @@ and output an array of arrays for any issues found.
 
 | Function | Description |
 | --- | --- |
-| [`runAllPlacementChecks`](./lib/run-all-checks.ts) | Runs placement checks (`checkCopperToBoardEdgeClearance`, `checkPcbComponentsOutOfBoard`, `checkPcbComponentOverKeepout`, `checkPcbCopperOverKeepout`, `checkPcbComponentOverlap`, `checkPadPadClearance`, `checkCourtyardOverlap`, `checkConnectorAccessibleOrientation`, and `checkTestPointAccessibility`). |
+| [`runAllPlacementChecks`](./lib/run-all-checks.ts) | Runs placement checks (`checkCopperToBoardEdgeClearance`, `checkPcbComponentsOutOfBoard`, `checkPcbCopperOverKeepout`, `checkPcbComponentOverlap`, `checkPadPadClearance`, `checkCourtyardOverlap`, `checkConnectorAccessibleOrientation`, and `checkTestPointAccessibility`). |
 | [`runAllNetlistChecks`](./lib/run-all-checks.ts) | Runs netlist connectivity checks (currently `checkPinMustBeConnected`). |
 | [`runAllPinSpecificationChecks`](./lib/run-all-checks.ts) | Runs pin specification checks (e.g. `checkAllPinsInComponentAreUnderspecified`, `checkNoPowerPinDefined`, and `checkNoGroundPinDefined`). |
 | [`runAllSchematicChecks`](./lib/run-all-checks.ts) | Runs schematic-layout checks (`checkSchematicComponentExcessiveVerticalPadding`, `checkSchematicComponentMissingReferenceDesignatorText`, and `checkSchematicComponentPortsOutsideBody`). |
@@ -48,8 +48,13 @@ and output an array of arrays for any issues found.
 
 ## Component footprints over keepouts
 
-All `pcb_keepout` records reserve component space on their listed layers, not
-just copper space. `checkPcbComponentOverKeepout` checks the full rectangle at
+`checkPcbComponentOverKeepout(circuitJson: AnyCircuitElement[], keepouts: PCBKeepout[])`
+is an explicit opt-in check: the second array is required, and only those keepouts
+are checked. It never discovers keepouts from the full circuit array. Callers can
+select generated mounting keepouts through their own generation bookkeeping,
+without changing the meaning of existing footprint or copper-only keepouts.
+
+The check uses the full rectangle at
 `pcb_component.center` with its `width`/`height`, even when the pads are clear.
 Core emits these as board-axis-aligned bounds of transformed footprint primitives;
 `rotation` must not be applied again. This conservative footprint can include
@@ -62,12 +67,8 @@ The caller includes any required mechanical margin in the keepout dimensions;
 the check does not add another margin. Only the component's own PCB layer is
 checked, independently of through-hole copper on other layers.
 
-`excluded_pcb_component_ids`, `do_not_place`, and zero-size component owners are
-skipped. A keepout's optional `pcb_component_id` also exempts its own component's
-footprint, since that keepout can contribute to the owner's bounds. This ownership
-does not exempt the owner's copper or other components; copper exclusions still
-require explicit `excluded_pcb_component_ids`. No owner is inferred when the field
-is absent.
+`excluded_pcb_component_ids`, `do_not_place`, and zero-size components are
+skipped. There is no implicit owner-self exemption or ownership inference.
 The published schema excludes PCB component IDs, not source IDs; callers
 must resolve mounting source entities to their PCB component IDs. Board ownership
 uses `subcircuit_id`, the PCB group/source component when needed, and
@@ -81,7 +82,8 @@ checks.
 Errors have stable IDs
 `component_over_keepout_<pcb_component_id>_<pcb_keepout_id>`, distinct from copper
 errors, and include the PCB layer and keepout description in their message.
-Both placement and all-check runners include this check.
+Neither `runAllPlacementChecks` nor `runAllChecks` includes this opt-in check.
+Their existing copper/pad keepout checking is unchanged.
 
 ## Consolidated placement overlaps
 

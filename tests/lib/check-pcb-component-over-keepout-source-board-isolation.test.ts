@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
 import { pcb_board, source_board, source_group } from "circuit-json"
-import type { AnyCircuitElement } from "circuit-json"
+import type { AnyCircuitElement, PCBKeepout } from "circuit-json"
 import { checkPcbComponentOverKeepout } from "../../index"
 import { component, keepout } from "../fixtures/component-keepout"
 
@@ -39,6 +39,10 @@ test("resolves actual core source-board ownership for overlapping board coordina
       is_subcircuit: true,
     }),
   ])
+  const keepouts: PCBKeepout[] = [
+    { ...keepout, pcb_keepout_id: "keepout_a", subcircuit_id: "sub_child_a" },
+    { ...keepout, pcb_keepout_id: "keepout_b", subcircuit_id: "sub_b" },
+  ]
   const circuitJson: AnyCircuitElement[] = [
     ...hierarchy,
     { ...component, pcb_component_id: "component_a", subcircuit_id: "sub_a" },
@@ -47,12 +51,11 @@ test("resolves actual core source-board ownership for overlapping board coordina
       pcb_component_id: "component_b",
       subcircuit_id: "sub_child_b",
     },
-    { ...keepout, pcb_keepout_id: "keepout_a", subcircuit_id: "sub_child_a" },
-    { ...keepout, pcb_keepout_id: "keepout_b", subcircuit_id: "sub_b" },
+    ...keepouts,
   ]
 
   expect(
-    checkPcbComponentOverKeepout(circuitJson).map(
+    checkPcbComponentOverKeepout(circuitJson, keepouts).map(
       (error) => error.pcb_placement_error_id,
     ),
   ).toEqual([

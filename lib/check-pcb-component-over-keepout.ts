@@ -9,17 +9,15 @@ import { EPSILON } from "./drc-defaults"
 import { getReadableNameForComponent } from "./util/get-readable-names"
 
 /**
- * Check the conservative, board-axis-aligned component footprint on its PCB
- * layer. Core computes width/height from transformed primitives; applying the
- * component rotation again would rotate these bounds twice. This is not a CAD
- * body or courtyard check.
+ * Opt in to checking selected keepouts against the conservative, board-axis-aligned
+ * component footprint on its PCB layer. Core computes width/height from transformed
+ * primitives; applying the component rotation again would rotate these bounds
+ * twice. This is not a CAD body or courtyard check.
  */
 export function checkPcbComponentOverKeepout(
   circuitJson: AnyCircuitElement[],
+  keepouts: PCBKeepout[],
 ): PcbPlacementError[] {
-  const keepouts = circuitJson.filter(
-    (element): element is PCBKeepout => element.type === "pcb_keepout",
-  )
   const components = circuitJson.filter(
     (element): element is PcbComponent => element.type === "pcb_component",
   )
@@ -113,10 +111,6 @@ export function checkPcbComponentOverKeepout(
       getReadableNameForComponent(circuitJson, component.pcb_component_id)
 
     for (const keepout of keepouts) {
-      // Ownership exempts the inflated owner footprint, not the owner's copper.
-      if (keepout.pcb_component_id === component.pcb_component_id) {
-        continue
-      }
       if (
         !keepout.layers.includes(component.layer) ||
         keepout.excluded_pcb_component_ids?.includes(component.pcb_component_id)

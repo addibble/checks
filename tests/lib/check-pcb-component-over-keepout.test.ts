@@ -3,12 +3,10 @@ import type { AnyCircuitElement } from "circuit-json"
 import {
   checkPcbComponentOverKeepout,
   checkPcbCopperOverKeepout,
-  runAllChecks,
-  runAllPlacementChecks,
 } from "../../index"
 import { component, keepout, source } from "../fixtures/component-keepout"
 
-test("reports the full component footprint even when its center and pads are clear", async () => {
+test("reports the full component footprint even when its center and pads are clear", () => {
   const circuitJson: AnyCircuitElement[] = [
     source,
     component,
@@ -27,7 +25,7 @@ test("reports the full component footprint even when its center and pads are cle
     ),
   ]
   expect(checkPcbCopperOverKeepout(circuitJson)).toEqual([])
-  const errors = checkPcbComponentOverKeepout(circuitJson)
+  const errors = checkPcbComponentOverKeepout(circuitJson, [keepout])
   expect(errors).toHaveLength(1)
   expect(errors[0]).toMatchObject({
     type: "pcb_placement_error",
@@ -38,13 +36,7 @@ test("reports the full component footprint even when its center and pads are cle
   expect(errors[0]?.message).toContain("U1")
   expect(errors[0]?.message).toContain("bottom")
   expect(errors[0]?.message).toContain('PCB keepout "Mounting screw boss"')
-  expect(checkPcbComponentOverKeepout([...circuitJson, ...errors])).toEqual(
-    errors,
-  )
-  expect(await runAllPlacementChecks(circuitJson)).toEqual(
-    expect.arrayContaining(errors),
-  )
-  expect(await runAllChecks(circuitJson)).toEqual(
-    expect.arrayContaining(errors),
-  )
+  expect(
+    checkPcbComponentOverKeepout([...circuitJson, ...errors], [keepout]),
+  ).toEqual(errors)
 })

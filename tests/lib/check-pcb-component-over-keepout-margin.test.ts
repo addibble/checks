@@ -19,15 +19,17 @@ test("includes tangency and EPSILON without adding another mechanical margin", (
     [0.1, 0],
   ]) {
     expect(
-      checkPcbComponentOverKeepout([
-        {
-          ...component,
-          width: 2,
-          height: 2,
-          center: { x: 2.5 + gap, y: 0 },
-        },
-        mountingKeepout,
-      ]),
+      checkPcbComponentOverKeepout(
+        [
+          {
+            ...component,
+            width: 2,
+            height: 2,
+            center: { x: 2.5 + gap, y: 0 },
+          },
+        ],
+        [mountingKeepout],
+      ),
     ).toHaveLength(count)
   }
 })
